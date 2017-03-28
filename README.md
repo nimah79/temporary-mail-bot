@@ -1,6 +1,6 @@
 # temporary-mail-bot
 
-## Broken temporarily
+**Broken temporarily**
 
 Telegram @TemporaryMailBot source code
 
