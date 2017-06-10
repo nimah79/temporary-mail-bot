@@ -8,15 +8,17 @@ function apiRequest($method, $parameters) {
         $val = json_encode($val);
       }
     }
-    $ch = curl_init("https://api.telegram.org/botXXXX/".$method);
+    $ch = curl_init("https://api.telegram.org/bot288875616:AAGc3NdBokmrJv0gZQk0DoAtH7LZdwxS6uQ/".$method);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $parameters);
     curl_exec($ch);
     curl_close($ch);
 }
+
 function randomMail() {
-	$list = json_decode(file_get_contents("https://api.temp-mail.org/request/domains/format/json"));
+	$list = json_decode(file_get_contents("https://api.temp-mail.ru/request/domains/format/json"));
     return substr(str_shuffle(str_repeat("0123456789abcdefghijklmnopqrstuvwxyz", ceil(10/34))), 1, 10).$list[mt_rand(0, count($list)-1)];
 }
+
 function processMessage($message) {
   if(isset($message["text"])) {
   	$chat_id = $message['chat']['id'];
@@ -31,11 +33,12 @@ function processMessage($message) {
     }
   }
 }
+
 function processQuery($query) {
   $chat_id = $query["message"]['chat']['id'];
   $id = $query['id'];
   $exploded = explode("-", $query['data']); 
-  $ch = curl_init("https://api.temp-mail.org/request/mail/id/".$exploded[1]."/format/json");
+  $ch = curl_init("https://api.temp-mail.ru/request/mail/id/".$exploded[1]."/format/json");
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
   $list = curl_exec($ch);
@@ -50,11 +53,15 @@ function processQuery($query) {
   }
   apiRequest("answerCallbackQuery", ['callback_query_id' => $id]);
 }
+
 $update = json_decode(file_get_contents("php://input"), true);
+
 if(isset($update["message"])) {
 	processMessage($update["message"]);
 }
+
 elseif(isset($update["callback_query"])) {
 	processQuery($update["callback_query"]);
 }
+
 ?>
