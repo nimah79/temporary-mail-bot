@@ -8,8 +8,10 @@
  * @NimaH79
 */
 
-// Only for NGINX + FastCGI
-// fastcgi_finish_request();
+// Only for Nginx + FastCGI (for better update handling)
+if(function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
+}
 
 define('BOT_TOKEN', 'XXXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
 
@@ -22,7 +24,7 @@ function teleRequest($method, $parameters)
     }
     $ch = curl_init('https://api.telegram.org/bot'.BOT_TOKEN.'/'.$method);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $parameters);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $result = curl_exec($ch);
     curl_close($ch);
 
@@ -73,7 +75,7 @@ if (!empty($update)) {
                 teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => 'Hi, '.$first_name."! Press NEW ADDRESS to get new temporary e-mail address.\n\nBy @Radio_Nima", 'reply_markup' => ['keyboard' => [[['text' => 'NEW ADDRESS']]], 'resize_keyboard' => true]]);
             } elseif ($text == 'new address') {
                 $mail_domains = getMailDomains();
-                $mail_address = generateRandomString(mt_rand(5, 6)).'@'.$mail_domains[array_rand($mail_domains)];
+                $mail_address = generateRandomString(rand(5, 6)).'@'.$mail_domains[array_rand($mail_domains)]['name'];
                 teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => 'E-Mail: '.$mail_address, 'reply_markup' => ['inline_keyboard' => [[['text' => '📩 Inbox', 'callback_data' => $mail_address]]]]]);
             } elseif (filter_var($text, FILTER_VALIDATE_EMAIL)) {
                 if (preg_match('/^([a-zA-Z0-9\._]+[A-Za-z0-9_])@(.*?)$/u', $text, $mail)) {
@@ -82,6 +84,8 @@ if (!empty($update)) {
                         $mail_address = $mail[1].'@'.$mail[2];
                         teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => 'E-Mail: '.$mail_address, 'reply_markup' => ['inline_keyboard' => [[['text' => '📩 Inbox', 'callback_data' => $mail_address]]]]]);
                     }
+                } else {
+                    teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => 'This address has been expired.', 'reply_markup' => ['keyboard' => [[['text' => 'NEW ADDRESS']]], 'resize_keyboard' => true]]);
                 }
             } else {
                 teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => 'Hi, '.$first_name."! Press NEW ADDRESS to get new temporary e-mail address.\n\nBy @Radio_Nima", 'reply_markup' => ['keyboard' => [[['text' => 'NEW ADDRESS']]], 'resize_keyboard' => true]]);
