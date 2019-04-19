@@ -9,7 +9,7 @@
 */
 
 // Only for Nginx + FastCGI (for better update handling)
-if(function_exists('fastcgi_finish_request')) {
+if (function_exists('fastcgi_finish_request')) {
     fastcgi_finish_request();
 }
 
