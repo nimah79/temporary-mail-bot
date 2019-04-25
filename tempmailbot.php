@@ -2,7 +2,6 @@
 
 /*
  * Temporary Mail Bot
- * @TemporaryMailBot
  * By NimaH79
  * NimaH79.ir
  * @NimaH79
@@ -34,7 +33,9 @@ function teleRequest($method, $parameters)
 function curl_get_contents($url)
 {
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     $result = curl_exec($ch);
     curl_close($ch);
 
@@ -45,17 +46,30 @@ function getMailDomains()
 {
     $mail_domains = curl_get_contents('https://getnada.com/api/v1/domains');
     $mail_domains = json_decode($mail_domains, true);
-
     return $mail_domains;
+}
+
+function getInbox($address)
+{
+    $inbox = curl_get_contents('https://getnada.com/api/v1/inboxes/'.$address);
+    $inbox = json_decode($inbox, true);
+    return $inbox;
+}
+
+function getMessage($id)
+{
+    $message = curl_get_contents('https://getnada.com/api/v1/messages/'.$id);
+    $message = json_decode($message, true);
+    return $message;
 }
 
 function generateRandomString($length = 5)
 {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
-    $characters_length = mb_strlen($characters);
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+    $characters_length = strlen($characters);
     $randomString = '';
     for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[mt_rand(0, $characters_length - 1)];
+        $randomString .= $characters[rand(0, $characters_length - 1)];
     }
 
     return $randomString;
@@ -96,15 +110,13 @@ if (!empty($update)) {
         $callback_query_id = $callback_query['id'];
         $callback_data = $callback_query['data'];
         $chat_id = $callback_query['from']['id'];
-        $inbox = curl_get_contents('https://getnada.com/api/v1/inboxes/'.$callback_data);
-        $inbox = json_decode($inbox, true);
+        $inbox = getInbox($callback_data);
         $inbox = $inbox['msgs'];
         if (!empty($inbox)) {
             teleRequest('answerCallbackQuery', ['callback_query_id' => $callback_query_id]);
             teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => 'Inbox of '.$callback_data.':']);
             foreach ($inbox as $message) {
-                $message_content = curl_get_contents('https://getnada.com/api/v1/messages/'.$message['uid']);
-                $message_content = json_decode($message_content, true);
+                $message_content = getMessage($message['uid']);
                 $message_text = 'From: '.$message['f']."\nAt: ".$message['rf']."\nContent:\n".$message_content['text'];
                 teleRequest('sendMessage', ['chat_id' => $chat_id, 'text' => $message_text]);
             }
