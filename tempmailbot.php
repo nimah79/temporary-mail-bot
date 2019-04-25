@@ -46,6 +46,7 @@ function getMailDomains()
 {
     $mail_domains = curl_get_contents('https://getnada.com/api/v1/domains');
     $mail_domains = json_decode($mail_domains, true);
+
     return $mail_domains;
 }
 
@@ -53,6 +54,7 @@ function getInbox($address)
 {
     $inbox = curl_get_contents('https://getnada.com/api/v1/inboxes/'.$address);
     $inbox = json_decode($inbox, true);
+
     return $inbox;
 }
 
@@ -60,6 +62,7 @@ function getMessage($id)
 {
     $message = curl_get_contents('https://getnada.com/api/v1/messages/'.$id);
     $message = json_decode($message, true);
+
     return $message;
 }
 
